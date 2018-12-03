@@ -8,6 +8,7 @@ services:
     container_name: nginx
     volumes:
       - /flg/:/flg
+      - /home/andesm/data/dev/django-for-flg-server:/django
     environment:
       NGINX_ROOT: /usr/share/nginx
       VIRTUAL_HOST: flg.jp
