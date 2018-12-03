@@ -1,0 +1,49 @@
+version: '2'
+
+services:
+  
+  nginx:
+    build: nginx
+    restart: always
+    container_name: nginx
+    volumes:
+      - /flg/:/flg
+    environment:
+      NGINX_ROOT: /usr/share/nginx
+      VIRTUAL_HOST: flg.jp
+      LETSENCRYPT_HOST: flg.jp
+      LETSENCRYPT_EMAIL: andes@flg.jp
+  
+  nginx-proxy:
+    build: nginx-proxy
+    restart: always
+    container_name: nginx-proxy
+    privileged: true
+    ports:
+      - 80:80
+      - 443:443
+    volumes:
+      - ./docker-compose.d/certs:/etc/nginx/certs:ro
+      - /etc/nginx/vhost.d
+      - /flg/srv/http/flg:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+    labels:
+      - com.github.jrcs.letsencrypt_nginx_proxy_companion.nginx_proxy=true 
+
+  Letsencrypt-nginx-proxy-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    restart: always
+    container_name: letsencrypt
+    privileged: true
+    volumes:
+      - ./docker-compose.d/certs:/etc/nginx/certs:rw
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    volumes_from:
+      - nginx-proxy
+
+  flg-user-home:
+    build: flg-user-home
+    restart: always
+    container_name: flg-user-home
+    volumes:
+      - /flg/home:/home
